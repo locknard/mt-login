@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.DS_Store
+
+# Project notes (local-only)
+design.md
+CLAUDE.md
+claude.md
+
+# Runtime artifacts
+state.json
+*.png
+*.log
+data/*
+!data/.gitkeep
+local/
+
+# Secrets
+.env

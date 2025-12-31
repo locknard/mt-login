@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="actions" style="justify-content: space-between;">
+    <h2 style="margin: 8px 0;">{{ "New account" if mode == "new" else "Edit account" }}</h2>
+    <a class="btn" href="/accounts">Back</a>
+  </div>
+
+  {% if error %}
+    <div class="badge err" style="display:block; margin: 10px 0; padding: 10px;">{{ error }}</div>
+  {% endif %}
+
+  {% if mode == "new" %}
+    <div class="actions" style="margin: 8px 0;">
+      <a class="btn" href="/accounts/new?preset=kp">Preset: kp.m-team.cc</a>
+      <span class="muted">先用预设填入已知 selectors，再按实际情况微调。</span>
+    </div>
+  {% endif %}
+
+  <form method="post" action="{{ '/accounts/new' if mode == 'new' else '/accounts/' ~ account.id }}">
+    <div class="row">
+      <div class="col">
+        <label>Name</label>
+        <input type="text" name="name" value="{{ draft.name if (not account and draft) else ('' if not account else account.name) }}" required />
+
+        <label>Login URL</label>
+        <input type="url" name="login_url" value="{{ draft.login_url if (not account and draft) else ('' if not account else account.login_url) }}" required />
+
+        <label>Target URL (after login)</label>
+        <input type="url" name="target_url" value="{{ draft.target_url if (not account and draft) else ('' if not account else account.target_url) }}" required />
+
+        <label>Username</label>
+        <input type="text" name="username" value="{{ draft.username if (not account and draft) else ('' if not account else account.username) }}" required />
+
+        <label>Password {% if mode == "edit" %}<span class="muted">(leave blank to keep, current: {{ masked_password }})</span>{% endif %}</label>
+        <input type="password" name="password" value="" {% if mode == "new" %}required{% endif %} />
+
+        <label>TOTP secret {% if mode == "edit" %}<span class="muted">(leave blank to keep, current: {{ masked_totp }})</span>{% endif %}</label>
+        <input type="password" name="totp_secret" value="" />
+
+        <label>TOTP migration URL <span class="muted">(可选：从 Google Authenticator 导出的 otpauth-migration://…；留空则用上面的 secret)</span></label>
+        <textarea name="totp_migration_url" placeholder="otpauth-migration://offline?data=..."></textarea>
+
+        <label>
+          <input type="checkbox" name="enabled" value="true" {% if (not account and draft and draft.enabled) or (account and account.enabled) %}checked{% endif %} />
+          Enabled
+        </label>
+
+        <label>Interval minutes</label>
+        <input type="text" name="interval_minutes" value="{{ draft.interval_minutes if (not account and draft) else (1440 if not account else account.interval_minutes) }}" />
+
+        <label>Start jitter seconds</label>
+        <input type="text" name="start_jitter_seconds" value="{{ draft.start_jitter_seconds if (not account and draft) else (0 if not account else account.start_jitter_seconds) }}" />
+
+        <label>
+          <input type="checkbox" name="headless" value="true" {% if (not account and draft and draft.headless) or (account and account.headless) %}checked{% endif %} />
+          Headless
+        </label>
+
+        <label>Timezone ID</label>
+        <input type="text" name="timezone_id" value="{{ draft.timezone_id if (not account and draft) else ('Asia/Shanghai' if not account else account.timezone_id) }}" />
+
+        <label>Navigation timeout (ms)</label>
+        <input type="text" name="nav_timeout_ms" value="{{ draft.nav_timeout_ms if (not account and draft) else (60000 if not account else account.nav_timeout_ms) }}" />
+
+        <label>User-Agent</label>
+        <textarea name="user_agent">{{ draft.user_agent if (not account and draft) else (default_ua if not account else account.user_agent) }}</textarea>
+      </div>
+
+      <div class="col">
+        <h3 style="margin: 12px 0 0;">Selectors</h3>
+        <div class="muted">按目标网站实际 DOM 修改。</div>
+
+        <label>Username selector</label>
+        <input type="text" name="username_selector" value="{{ draft.username_selector if (not account and draft) else ('input[name=&quot;username&quot;]' if not account else account.username_selector) }}" />
+
+        <label>Password selector</label>
+        <input type="text" name="password_selector" value="{{ draft.password_selector if (not account and draft) else ('input[name=&quot;password&quot;]' if not account else account.password_selector) }}" />
+
+        <label>Submit selector</label>
+        <input type="text" name="submit_selector" value="{{ draft.submit_selector if (not account and draft) else ('button[type=&quot;submit&quot;]' if not account else account.submit_selector) }}" />
+
+        <label>OTP selector</label>
+        <input type="text" name="otp_selector" value="{{ draft.otp_selector if (not account and draft) else ('input[name=&quot;otp_code&quot;]' if not account else account.otp_selector) }}" />
+
+        <label>OTP submit selector (optional)</label>
+        <input type="text" name="otp_submit_selector" value="{{ draft.otp_submit_selector if (not account and draft) else ('' if not account else account.otp_submit_selector) }}" />
+
+        <label>Logged-in selector (recommended)</label>
+        <input type="text" name="logged_in_selector" value="{{ draft.logged_in_selector if (not account and draft) else ('' if not account else account.logged_in_selector) }}" />
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top: 16px;">
+      <button class="btn primary" type="submit">Save</button>
+      <a class="btn" href="/accounts">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

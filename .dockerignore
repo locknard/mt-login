@@ -1,0 +1,16 @@
+.git
+.gitignore
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Local secrets/runtime
+.env
+data/
+local/
+
+# Editor/OS noise
+.idea/
+.vscode/

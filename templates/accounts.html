@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="actions" style="justify-content: space-between;">
+    <h2 style="margin: 8px 0;">Accounts</h2>
+    <div class="actions">
+      <a class="btn" href="/accounts/new">+ New (Custom)</a>
+      <a class="btn primary" href="/accounts/new?preset=kp">+ New (kp.m-team.cc)</a>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Enabled</th>
+        <th>Last</th>
+        <th>Next</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in accounts %}
+      <tr>
+        <td>{{ a.id }}</td>
+        <td>
+          <div>{{ a.name }}</div>
+          <div class="muted">{{ a.target_url }}</div>
+        </td>
+        <td>{{ "yes" if a.enabled else "no" }}</td>
+        <td>
+          {% if a.last_status == "ok" %}
+            <span class="badge ok">ok</span>
+          {% elif a.last_status == "error" %}
+            <span class="badge err">error</span>
+          {% elif a.last_status == "running" %}
+            <span class="badge warn">running</span>
+          {% else %}
+            <span class="badge">never</span>
+          {% endif %}
+          <div class="muted">{{ a.last_run_at or "" }}</div>
+          <div class="muted" style="max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.last_message }}</div>
+        </td>
+        <td class="muted">{{ a.next_run_at or "" }}</td>
+        <td>
+          <div class="actions">
+            <a class="btn" href="/accounts/{{ a.id }}">Edit</a>
+            <a class="btn" href="/accounts/{{ a.id }}/runs">Runs</a>
+            <form method="post" action="/accounts/{{ a.id }}/run" style="display:inline;">
+              <button class="btn primary" type="submit">Run now</button>
+            </form>
+            <form method="post" action="/accounts/{{ a.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete account?');">
+              <button class="btn" type="submit">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if accounts|length == 0 %}
+      <tr><td colspan="6" class="muted">No accounts yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+{% endblock %}

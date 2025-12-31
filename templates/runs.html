@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="actions" style="justify-content: space-between;">
+    <div>
+      <h2 style="margin: 8px 0;">Runs - {{ account.name }}</h2>
+      <div class="muted">{{ account.target_url }}</div>
+      {% if started == "1" %}
+        <div class="muted">Started background run.</div>
+      {% elif started == "0" %}
+        <div class="muted">Run already in progress.</div>
+      {% endif %}
+    </div>
+    <div class="actions">
+      <a class="btn" href="/accounts">Back</a>
+      <form method="post" action="/accounts/{{ account.id }}/run" style="display:inline;">
+        <button class="btn primary" type="submit">Run now</button>
+      </form>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Started</th>
+        <th>Finished</th>
+        <th>OK</th>
+        <th>Message</th>
+        <th>Artifacts</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in runs %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td class="muted">{{ r.started_at }}</td>
+        <td class="muted">{{ r.finished_at or "" }}</td>
+        <td>
+          {% if r.ok %}
+            <span class="badge ok">ok</span>
+          {% else %}
+            <span class="badge err">error</span>
+          {% endif %}
+        </td>
+        <td style="max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.message }}</td>
+        <td class="actions">
+          {% if r.screenshot_path %}
+            <a class="btn" href="/shots/{{ r.screenshot_path }}">screenshot</a>
+          {% endif %}
+          {% if r.error_screenshot_path %}
+            <a class="btn" href="/shots/{{ r.error_screenshot_path }}">error</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if runs|length == 0 %}
+      <tr><td colspan="6" class="muted">No runs yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+{% endblock %}

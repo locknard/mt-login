@@ -1,0 +1,11 @@
+services:
+  mt-2fa:
+    build: .
+    env_file: .env
+    ports:
+      - "${APP_PORT:-53100}:8000"
+    environment:
+      APP_DATA_DIR: /data
+      APP_DB_URL: sqlite:////data/app.db
+    volumes:
+      - ./data:/data
