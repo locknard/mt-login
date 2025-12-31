@@ -1,4 +1,4 @@
-# mt-2fa
+# 馒头保号
 
 用 Docker + Playwright 定期自动登录网站（支持 TOTP 2FA），用于“保号”。
 
