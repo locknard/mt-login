@@ -37,16 +37,29 @@
           {% else %}
             <span class="badge">never</span>
           {% endif %}
-          <div class="muted">{{ a.last_run_at or "" }}</div>
-          <div class="muted" style="max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.last_message }}</div>
+          {% if a.last_run_at %}
+            <div class="muted">{{ a.last_run_at.strftime('%Y-%m-%d %H:%M:%S') if a.last_run_at else "" }}</div>
+          {% endif %}
+          {% if a.last_message and a.last_status != "never" %}
+            <div class="muted" style="max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.last_message }}</div>
+          {% endif %}
         </td>
-        <td class="muted">{{ a.next_run_at or "" }}</td>
+        <td class="muted">
+          {% if a.next_run_at %}
+            {{ a.next_run_at.strftime('%Y-%m-%d %H:%M:%S') }}
+          {% else %}
+            <span class="muted">-</span>
+          {% endif %}
+        </td>
         <td>
           <div class="actions">
             <a class="btn" href="/accounts/{{ a.id }}">Edit</a>
             <a class="btn" href="/accounts/{{ a.id }}/runs">Runs</a>
             <form method="post" action="/accounts/{{ a.id }}/run" style="display:inline;">
               <button class="btn primary" type="submit">Run now</button>
+            </form>
+            <form method="post" action="/accounts/{{ a.id }}/toggle" style="display:inline;">
+              <button class="btn" type="submit">{{ "Disable" if a.enabled else "Enable" }}</button>
             </form>
             <form method="post" action="/accounts/{{ a.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete account?');">
               <button class="btn" type="submit">Delete</button>

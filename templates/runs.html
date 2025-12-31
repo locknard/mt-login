@@ -33,10 +33,12 @@
       {% for r in runs %}
       <tr>
         <td>{{ r.id }}</td>
-        <td class="muted">{{ r.started_at }}</td>
-        <td class="muted">{{ r.finished_at or "" }}</td>
+        <td class="muted">{{ r.started_at.strftime('%Y-%m-%d %H:%M:%S') if r.started_at else "" }}</td>
+        <td class="muted">{{ r.finished_at.strftime('%Y-%m-%d %H:%M:%S') if r.finished_at else "-" }}</td>
         <td>
-          {% if r.ok %}
+          {% if r.finished_at is none %}
+            <span class="badge warn">running</span>
+          {% elif r.ok %}
             <span class="badge ok">ok</span>
           {% else %}
             <span class="badge err">error</span>

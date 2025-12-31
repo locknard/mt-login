@@ -98,7 +98,7 @@ class LoginScheduler:
                 select(Account).where(Account.enabled.is_(True), Account.next_run_at.is_(None))
             ).scalars().all()
             for acc in uninitialized:
-                acc.next_run_at = now
+                acc.next_run_at = _compute_next_run(now, int(acc.interval_minutes))
             session.commit()
 
         for account_id in due_ids:
@@ -142,6 +142,7 @@ class LoginScheduler:
                 error_screenshot_path=error_screenshot_rel,
             )
             session.add(run)
+            acc.last_run_at = now  # Update last_run_at when starting
             acc.last_status = "running"
             acc.last_message = f"running ({triggered_by})"
             session.commit()
@@ -201,9 +202,16 @@ class LoginScheduler:
             run.final_url = result.final_url
             run.finished_at = utcnow()
 
-            acc.last_run_at = now
+            # Don't update last_run_at again (already set when started)
             acc.last_status = "ok" if result.ok else "error"
             acc.last_message = result.message
-            acc.next_run_at = _compute_next_run(now, int(acc.interval_minutes))
+
+            # If failed, retry sooner (30 minutes); if succeeded, use normal interval
+            if not acc.enabled:
+                acc.next_run_at = None
+            elif result.ok:
+                acc.next_run_at = _compute_next_run(now, int(acc.interval_minutes))
+            else:
+                acc.next_run_at = now + dt.timedelta(minutes=30)
 
             session.commit()

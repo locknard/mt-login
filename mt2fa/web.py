@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import datetime as dt
 from pathlib import Path
 from contextlib import asynccontextmanager
 from secrets import compare_digest
@@ -57,6 +58,11 @@ def _to_int(value: Optional[str], default: int) -> int:
 
 def _clean(value: Optional[str]) -> str:
     return (value or "").strip()
+
+
+def _next_run_from_now(interval_minutes: int) -> dt.datetime:
+    interval_minutes = max(1, int(interval_minutes))
+    return utcnow() + dt.timedelta(minutes=interval_minutes)
 
 
 def _app_state_dirs(data_dir: str) -> tuple[str, str]:
@@ -274,7 +280,7 @@ def accounts_new(
         otp_selector=draft["otp_selector"],
         otp_submit_selector=draft["otp_submit_selector"],
         logged_in_selector=draft["logged_in_selector"],
-        next_run_at=utcnow(),
+        next_run_at=_next_run_from_now(int(draft["interval_minutes"])),
     )
 
     os.makedirs(settings.data_dir, exist_ok=True)
@@ -364,6 +370,9 @@ def accounts_edit(
             if acc is None:
                 raise HTTPException(404)
 
+            old_interval = acc.interval_minutes
+            old_enabled = acc.enabled
+
             acc.name = draft["name"]
             acc.login_url = draft["login_url"]
             acc.target_url = draft["target_url"]
@@ -401,8 +410,14 @@ def accounts_edit(
                 picked = pick_best_totp(entries, username_hint=acc.username)
                 acc.totp_secret_enc = crypto.encrypt_text(picked.secret_base32)
 
-            if acc.next_run_at is None and acc.enabled:
-                acc.next_run_at = utcnow()
+            if not acc.enabled:
+                acc.next_run_at = None
+            elif not old_enabled:
+                acc.next_run_at = _next_run_from_now(int(acc.interval_minutes))
+            elif old_interval != acc.interval_minutes:
+                acc.next_run_at = _next_run_from_now(int(acc.interval_minutes))
+            elif acc.next_run_at is None:
+                acc.next_run_at = _next_run_from_now(int(acc.interval_minutes))
     except (MigrationDecodeError, HTTPException, ValueError) as e:
         detail = getattr(e, "detail", None) or str(e)
         if isinstance(e, MigrationDecodeError):
@@ -439,6 +454,21 @@ def accounts_delete(request: Request, account_id: int, _: str = Depends(_require
         if acc is None:
             raise HTTPException(404)
         session.delete(acc)
+    return RedirectResponse(url="/accounts", status_code=303)
+
+
+@app.post("/accounts/{account_id}/toggle")
+def accounts_toggle(request: Request, account_id: int, _: str = Depends(_require_auth)):
+    session_factory = request.app.state.session_factory
+    with session_scope(session_factory) as session:
+        acc = session.get(Account, account_id)
+        if acc is None:
+            raise HTTPException(404)
+        acc.enabled = not acc.enabled
+        if acc.enabled:
+            acc.next_run_at = _next_run_from_now(int(acc.interval_minutes))
+        else:
+            acc.next_run_at = None
     return RedirectResponse(url="/accounts", status_code=303)
 
 
