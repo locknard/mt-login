@@ -79,11 +79,6 @@ mkdir -p data
 docker run --rm -p 53100:8000 --env-file .env -v "$PWD/data:/data" ghcr.io/locknard/mt-login:latest
 ```
 
-## 发布到 GitHub 时建议提交/忽略
-
-- 建议提交：`mt2fa/`、`templates/`、`static/`、`Dockerfile`、`docker-compose.yml`、`requirements.txt`、`.env.example`、`README.md`、`.dockerignore`、`.gitignore`、`.github/workflows/`
-- 不要提交：`.env`、`data/`（包含 `app.db`、cookie state、截图、运行历史）、`local/`（你自己的临时文件/截图/zip）、`design.md`、`CLAUDE.md`
-
 ## 安全提示
 
 - `TOTP secret` / 密码会写入 SQLite，但使用 `APP_MASTER_KEY` 进行了加密；务必妥善保管 `APP_MASTER_KEY`。
