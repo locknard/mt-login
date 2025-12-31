@@ -25,12 +25,13 @@ OTP 输入框如果不确定，可以留空（服务会在登录后自动尝试�
 
 ### 单次 CLI（保留）
 
-仍支持用环境变量跑一次（适合调试 selectors）：
+仍支持跑一次（主要用于调试 selectors / 2FA 流程）。注意：这是单账号模式；多账号请用 Web UI。
 
 ```bash
 docker build -t mt-login .
 mkdir -p data
-docker run --rm --env-file .env \
+cp .env.cli.example .env.cli
+docker run --rm --env-file .env.cli \
   -e BOT_STATE_PATH=/data/state.json \
   -e BOT_SCREENSHOT_PATH=/data/screenshot.png \
   -e BOT_ERROR_SCREENSHOT_PATH=/data/error.png \

@@ -19,3 +19,4 @@ local/
 
 # Secrets
 .env
+.env.cli
