@@ -1,0 +1,15 @@
+services:
+  mt-2fa:
+    image: ghcr.io/locknard/mt-login:latest
+    pull_policy: always
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    ports:
+      - "${APP_PORT:-53100}:8000"
+    environment:
+      APP_DATA_DIR: /data
+      APP_DB_URL: sqlite:////data/app.db
+    volumes:
+      - ./data:/data
+    shm_size: "1gb"

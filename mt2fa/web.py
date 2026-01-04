@@ -112,6 +112,11 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(_: str = Depends(_require_auth)):
     return RedirectResponse(url="/accounts", status_code=303)

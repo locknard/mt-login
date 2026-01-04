@@ -12,7 +12,12 @@
 
 ```bash
 mkdir -p data
-docker compose up -d --build
+# 生产/长期运行：直接用 GHCR 镜像（推荐）
+docker compose -f docker-compose.ghcr.yml pull
+docker compose -f docker-compose.ghcr.yml up -d
+
+# 本地开发：从当前仓库构建
+# docker compose up -d --build
 ```
 
 2) 打开 `http://localhost:53100/accounts`（可用 `APP_PORT` 改端口），用 BasicAuth 登录后：
@@ -78,6 +83,17 @@ Web UI 相关见 `.env.example` 的 `APP_*`；账号/selector 在 Web 页面里�
 docker pull ghcr.io/locknard/mt-login:latest
 mkdir -p data
 docker run --rm -p 53100:8000 --env-file .env -v "$PWD/data:/data" ghcr.io/locknard/mt-login:latest
+```
+
+如果你在 Apple Silicon（arm64）上遇到 `no matching manifest`，可临时用 `docker pull --platform=linux/amd64 ...`（或在 compose 里加 `platform: linux/amd64`）。
+
+Docker Compose（更推荐，含 `restart` / `shm_size` 等常用配置）：
+
+```bash
+mkdir -p data
+docker compose -f docker-compose.ghcr.yml pull
+docker compose -f docker-compose.ghcr.yml up -d
+curl -fsS http://localhost:53100/healthz
 ```
 
 ## 安全提示
