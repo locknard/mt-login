@@ -8,6 +8,8 @@
         <div class="muted">Started background run.</div>
       {% elif started == "0" %}
         <div class="muted">Run already in progress.</div>
+      {% elif started == "disabled" %}
+        <div style="color: #c9302c;">Account is disabled. Please enable it first.</div>
       {% endif %}
     </div>
     <div class="actions">

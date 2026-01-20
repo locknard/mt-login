@@ -479,6 +479,13 @@ def accounts_toggle(request: Request, account_id: int, _: str = Depends(_require
 
 @app.post("/accounts/{account_id}/run")
 def accounts_run_now(request: Request, account_id: int, _: str = Depends(_require_auth)):
+    session_factory = request.app.state.session_factory
+    with session_scope(session_factory) as session:
+        acc = session.get(Account, account_id)
+        if acc is None:
+            raise HTTPException(404)
+        if not acc.enabled:
+            return RedirectResponse(url=f"/accounts/{account_id}/runs?started=disabled", status_code=303)
     scheduler: LoginScheduler = request.app.state.scheduler
     started = scheduler.trigger_account(account_id)
     return RedirectResponse(url=f"/accounts/{account_id}/runs?started={'1' if started else '0'}", status_code=303)
